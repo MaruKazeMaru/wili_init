@@ -31,14 +31,14 @@ def create_db(db_path:str, motion_num:int):
         ')' \
     )
     cur.execute( \
-        'CREATE TABLE heatmap_user(' \
+        'CREATE TABLE gaussian(' \
         'id INTEGER PRIMARY KEY AUTOINCREMENT,' \
         'motion INTEGER,' \
         'avr_x REAL,' \
         'avr_y REAL,' \
-        'inv_var_xx REAL,' \
-        'inv_var_xy REAL,' \
-        'inv_var_yy REAL,' \
+        'var_xx REAL,' \
+        'var_xy REAL,' \
+        'var_yy REAL,' \
         'FOREIGN KEY(motion) REFERENCES motion(id)' \
         ')' \
     )
@@ -55,7 +55,7 @@ def create_db(db_path:str, motion_num:int):
             values.append('(%d, %d, %f)' % (i, j, init_prob))
     cur.execute('INSERT INTO tr_prob(from_motion, to_motion, elem) VALUES' + ','.join(values))
 
-    # INSERT heatmap_user
+    # INSERT gaussian
     values = []
     v = np.array([1.0, 0.0])
     ang = 2.0 * np.pi / float(motion_num)
@@ -66,8 +66,8 @@ def create_db(db_path:str, motion_num:int):
         values.append('(%d, %f, %f, %f, %f, %f)' % (i, v[0], v[1], 1.0, 0.0, 1.0))
         v = R @ v
     sql = \
-    'INSERT INTO heatmap_user' \
-    ' (motion, avr_x, avr_y, inv_var_xx, inv_var_xy, inv_var_yy)' \
+    'INSERT INTO gaussian' \
+    ' (motion, avr_x, avr_y, var_xx, var_xy, var_yy)' \
     ' VALUES'
     cur.execute(sql + ','.join(values))
 
