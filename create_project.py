@@ -63,7 +63,7 @@ def create_db(db_path:str, motion_num:int):
     s = np.sin(ang)
     R = np.array([[c,-s], [s,c]])
     for i in range(motion_num):
-        values.append('(%d, %f, %f, %f, %f, %f)' % (i, v[0], v[1], 1.0, 0.0, 1.0))
+        values.append('(%d, %f, %f, %f, %f, %f)' % (i, 2.0 * v[0], 1.0 * v[1], 1.0, 0.0, 1.0))
         v = R @ v
     sql = \
     'INSERT INTO gaussian' \
@@ -76,14 +76,10 @@ def create_db(db_path:str, motion_num:int):
 
 
 def main(args):
-    dir_path = '/var/lib/wili/' + args.projectname
-    if os.path.exists(dir_path):
-        print('%s already exists' % args.projectname, file=sys.stderr)
-        exit(1)
+    db_path = '/var/wili/db.sqlite3'
 
-    os.mkdir(dir_path)
-
-    db_path = dir_path + '/db.sqlite3'
+    if os.path.exists(db_path):
+        os.remove(db_path)
     with open(db_path, 'x'):
         pass
     create_db(db_path, args.motionnum)
@@ -92,6 +88,5 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="WILI db initializer")
     parser.add_argument("motionnum", help="int. number of motion", type=int)
-    parser.add_argument("projectname", help="str. name of project", type=str)
     args = parser.parse_args()
     main(args)
