@@ -21,11 +21,19 @@ def create_db(db_path:str, motion_num:int):
         ')' \
     )
     cur.execute( \
+        'CREATE TABLE init_prob(' \
+        'id INTEGER PRIMARY KEY AUTOINCREMENT,' \
+        'motion INTEGER,' \
+        'data REAL,' \
+        'FOREIGN KEY(motion) REFERENCES motion(id)' \
+        ')' \
+    )
+    cur.execute( \
         'CREATE TABLE tr_prob(' \
         'id INTEGER PRIMARY KEY AUTOINCREMENT,' \
         'from_motion INTEGER,' \
         'to_motion INTEGER,' \
-        'elem REAL,' \
+        'data REAL,' \
         'FOREIGN KEY(from_motion) REFERENCES motion(id),' \
         'FOREIGN KEY(to_motion) REFERENCES motion(id)' \
         ')' \
@@ -36,9 +44,9 @@ def create_db(db_path:str, motion_num:int):
         'motion INTEGER,' \
         'avr_x REAL,' \
         'avr_y REAL,' \
-        'var_xx REAL,' \
-        'var_xy REAL,' \
-        'var_yy REAL,' \
+        'covar_xx REAL,' \
+        'covar_xy REAL,' \
+        'covar_yy REAL,' \
         'FOREIGN KEY(motion) REFERENCES motion(id)' \
         ')' \
     )
@@ -47,13 +55,19 @@ def create_db(db_path:str, motion_num:int):
     values = ['(%d)' % i for i in range(motion_num)]
     cur.execute('INSERT INTO motion(id) VALUES' + ','.join(values))
 
-    # INSERT tr_prob
+    # INSERT init_prob
     values = [] 
     init_prob = 1.0 / float(motion_num)
     for i in range(motion_num):
+        values.append('(%d, %f)' % (i, init_prob))
+    cur.execute('INSERT INTO init_prob(motion, data) VALUES' + ','.join(values))
+
+    # INSERT tr_prob
+    values = [] 
+    for i in range(motion_num):
         for j in range(motion_num):
             values.append('(%d, %d, %f)' % (i, j, init_prob))
-    cur.execute('INSERT INTO tr_prob(from_motion, to_motion, elem) VALUES' + ','.join(values))
+    cur.execute('INSERT INTO tr_prob(from_motion, to_motion, data) VALUES' + ','.join(values))
 
     # INSERT gaussian
     values = []
@@ -67,7 +81,7 @@ def create_db(db_path:str, motion_num:int):
         v = R @ v
     sql = \
     'INSERT INTO gaussian' \
-    ' (motion, avr_x, avr_y, var_xx, var_xy, var_yy)' \
+    ' (motion, avr_x, avr_y, covar_xx, covar_xy, covar_yy)' \
     ' VALUES'
     cur.execute(sql + ','.join(values))
 
